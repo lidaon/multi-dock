@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t exdot/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true exdot/react-test npm test
+
+after_success:
+  - docker build -t exdot/multi-client ./client
+  - docker build -t exdot/multi-nginx ./nginx
+  - docker build -t exdot/multi-server ./server
+  - docker build -t exdot/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push exdot/multi-client
+  - docker push exdot/multi-nginx
+  - docker push exdot/multi-server
+  - docker push exdot/multi-worker
